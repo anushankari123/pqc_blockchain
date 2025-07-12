@@ -1,19 +1,11 @@
-# 🛡️ PQC Blockchain: Quantum-Resistant Certificate Authority using Hyperledger Fabric
+# PQC Blockchain - Hybrid Certificate Authority
 
-This project implements a **hybrid certificate authority (CA)** system that integrates **post-quantum cryptography (PQC)** with **Hyperledger Fabric** to provide secure, role-based identity management for blockchain applications in the post-quantum era.
+This project implements a hybrid certificate authority that uses both **classical cryptography (ECDSA)** and **post-quantum cryptography (Kyber512, Falcon-512, Dilithium2)** to issue certificates based on user roles.
 
-## 🌐 Overview
+Certificates are generated through a REST API and stored securely in **Hyperledger Fabric** using a Go-based smart contract.
 
-- 🔐 **Classical + PQC Hybrid Certificates**: Combines ECDSA with Kyber512, Falcon-512, and Dilithium2 algorithms.
-- 🧑‍💻 **Role-Based Keying**:
-  - `User` → Kyber512 (KEM)
-  - `Admin` → Falcon-512 (Signature)
-  - `SuperAdmin` → Dilithium2 (Signature)
-- 📄 **X.509 Certificates**: Classical key signs the certificate, while PQC keys are embedded in custom OIDs.
-- 🔗 **Hyperledger Fabric Chaincode**: Certificates and metadata are stored securely in Fabric’s world state.
-- 🌐 **REST API Backend (Go)**: Certificate generation and download endpoints using `liboqs-go` and `mux`.
+- **User → Kyber512**
+- **Admin → Falcon-512**
+- **SuperAdmin → Dilithium2**
 
----
-
-## 📁 Project Structure
-
+The system ensures future-proof identity management by combining post-quantum security with blockchain-backed integrity.
