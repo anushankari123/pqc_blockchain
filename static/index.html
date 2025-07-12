@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post-Quantum Certificate Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #34495e;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .cert-info {
+      margin-top: 30px;
+      display: none;
+      background-color: #f9f9f9;
+      border-left: 4px solid #3498db;
+      padding: 15px;
+      border-radius: 0 4px 4px 0;
+    }
+    .cert-row {
+      margin-bottom: 10px;
+    }
+    .cert-label {
+      font-weight: 600;
+      display: inline-block;
+      width: 150px;
+    }
+    .algo-details {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px dashed #ccc;
+    }
+    .algo-title {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    .download-links {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .download-btn {
+      background-color: #27ae60;
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      flex: 1;
+      margin: 0 5px;
+      text-align: center;
+    }
+    .loading {
+      text-align: center;
+      display: none;
+      margin: 20px 0;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid #3498db;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      color: #e74c3c;
+      padding: 10px;
+      background-color: #fadbd8;
+      border-radius: 4px;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Post-Quantum Certificate Generator</h1>
+    
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input type="text" id="username" placeholder="Enter username">
+    </div>
+    
+    <div class="form-group">
+      <label for="organization">Organization:</label>
+      <input type="text" id="organization" placeholder="Enter organization" value="Example Corp">
+    </div>
+    
+    <div class="form-group">
+      <label for="role">Role:</label>
+      <select id="role">
+        <option value="user">User (Kyber512)</option>
+        <option value="admin">Admin (Falcon-512)</option>
+        <option value="super_admin">Super Admin (Dilithium2)</option>
+      </select>
+    </div>
+    
+    <button onclick="generateCertificate()">Generate Certificate</button>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Generating certificate...</p>
+    </div>
+    
+    <div class="error" id="error">
+      An error occurred while generating the certificate.
+    </div>
+    
+    <div class="cert-info" id="cert-info">
+      <h2>Certificate Information</h2>
+      
+      <div class="cert-row">
+        <span class="cert-label">Subject:</span>
+        <span id="cert-subject"></span>
+      </div>
+      
+      <div class="cert-row">
+        <span class="cert-label">Organization:</span>
+        <span id="cert-org"></span>
+      </div>
+      
+      <div class="cert-row">
+        <span class="cert-label">Role:</span>
+        <span id="cert-role"></span>
+      </div>
+      
+      <div class="cert-row">
+        <span class="cert-label">Valid From:</span>
+        <span id="cert-valid-from"></span>
+      </div>
+      
+      <div class="cert-row">
+        <span class="cert-label">Valid Until:</span>
+        <span id="cert-valid-until"></span>
+      </div>
+      
+      <div class="cert-row">
+        <span class="cert-label">Classical Key:</span>
+        <span>ECDSA P-256</span>
+      </div>
+      
+      <div class="cert-row">
+        <span class="cert-label">PQC Algorithm:</span>
+        <span id="cert-pqc-algo"></span>
+      </div>
+      
+      <div class="algo-details" id="algo-details">
+        <div class="algo-title" id="algo-title"></div>
+        <div id="algo-type" class="cert-row">
+          <span class="cert-label">Type:</span>
+          <span id="algo-type-value"></span>
+        </div>
+        <div id="algo-security" class="cert-row">
+          <span class="cert-label">Security Level:</span>
+          <span id="algo-security-value"></span>
+        </div>
+        <div id="algo-key-size" class="cert-row">
+          <span class="cert-label">Key Size:</span>
+          <span id="algo-key-size-value"></span>
+        </div>
+        <div id="algo-use" class="cert-row">
+          <span class="cert-label">Primary Use:</span>
+          <span id="algo-use-value"></span>
+        </div>
+        <div id="algo-math" class="cert-row">
+          <span class="cert-label">Mathematical Base:</span>
+          <span id="algo-math-value"></span>
+        </div>
+      </div>
+      
+      <div class="download-links">
+        <a href="#" class="download-btn" id="download-cert">Download Certificate</a>
+        <a href="#" class="download-btn" id="download-classical-key">Download Classical Key</a>
+        <a href="#" class="download-btn" id="download-pq-key">Download PQ Key</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Algorithm details for each PQC algorithm
+    const algoDetails = {
+      "Kyber512": {
+        title: "Kyber512 Details",
+        type: "Key Encapsulation Mechanism (KEM)",
+        security: "NIST Level 1 (AES-128 equivalent)",
+        keySize: "~800 bytes public key, ~1.6 KB secret key",
+        ciphertext: "~768 bytes",
+        use: "Secure key exchange for encrypted communications",
+        math: "Module Learning With Errors (MLWE)"
+      },
+      "Falcon-512": {
+        title: "Falcon-512 Details",
+        type: "Digital Signature Algorithm",
+        security: "NIST Level 1 (AES-128 equivalent)",
+        keySize: "~897 bytes public key, ~1.3 KB secret key",
+        signatureSize: "~666 bytes (average)",
+        use: "Authentication and non-repudiation",
+        math: "NTRU lattices with Fast Fourier sampling"
+      },
+      "Dilithium2": {
+        title: "Dilithium2 Details",
+        type: "Digital Signature Algorithm",
+        security: "NIST Level 2 (AES-128+ equivalent)",
+        keySize: "~1.3 KB public key, ~2.5 KB secret key",
+        signatureSize: "~2.4 KB",
+        use: "Authentication for high-security applications",
+        math: "Module Learning With Errors (MLWE)"
+      }
+    };
+
+    // Map roles to algorithms
+    const roleToAlgo = {
+      "user": "Kyber512",
+      "admin": "Falcon-512",
+      "super_admin": "Dilithium2"
+    };
+    
+    // Mock certificate generation function (since we can't connect to backend directly)
+    function generateCertificate() {
+        const username = document.getElementById('username').value.trim();
+        const organization = document.getElementById('organization').value.trim();
+        const role = document.getElementById('role').value;
+        const errorDiv = document.getElementById('error');
+        
+        // Validate inputs
+        if (!username) {
+          errorDiv.textContent = "Username is required";
+          errorDiv.style.display = "block";
+          return;
+        }
+        
+        if (!organization) {
+          errorDiv.textContent = "Organization is required";
+          errorDiv.style.display = "block";
+          return;
+        }
+        
+        // Hide error if previously shown
+        errorDiv.style.display = "none";
+        
+        // Show loading spinner
+        document.getElementById('loading').style.display = "block";
+        
+        // Make API call to the backend
+        fetch('/api/generate-certificate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: username,
+            organization: organization,
+            role: role
+          }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          document.getElementById('loading').style.display = "none";
+          displayCertificateInfo(username, organization, role, data);
+        })
+        .catch(error => {
+          document.getElementById('loading').style.display = "none";
+          errorDiv.textContent = "Error generating certificate: " + error.message;
+          errorDiv.style.display = "block";
+        });
+      }
+      
+      function displayCertificateInfo(username, organization, role, data) {
+        const algorithm = roleToAlgo[role];
+        
+        // Update certificate info
+        document.getElementById('cert-subject').textContent = username;
+        document.getElementById('cert-org').textContent = organization;
+        document.getElementById('cert-role').textContent = role;
+        document.getElementById('cert-valid-from').textContent = data.validFrom;
+        document.getElementById('cert-valid-until').textContent = data.validUntil;
+        document.getElementById('cert-pqc-algo').textContent = algorithm;
+        
+        // Update algorithm details (using existing algoDetails)
+        const algoInfo = algoDetails[algorithm];
+        document.getElementById('algo-title').textContent = algoInfo.title;
+        document.getElementById('algo-type-value').textContent = algoInfo.type;
+        document.getElementById('algo-security-value').textContent = algoInfo.security;
+        document.getElementById('algo-key-size-value').textContent = algoInfo.keySize;
+        document.getElementById('algo-use-value').textContent = algoInfo.use;
+        document.getElementById('algo-math-value').textContent = algoInfo.math;
+        
+        // Update download links (real file downloads)
+        document.getElementById('download-cert').href = `/api/download-certificate/${username}/${role}`;
+        document.getElementById('download-classical-key').href = `/api/download-classical-key/${username}/${role}`;
+        document.getElementById('download-pq-key').href = `/api/download-pq-key/${username}/${role}`;
+        
+        // Show certificate info section
+        document.getElementById('cert-info').style.display = "block";
+      }
+    
+    // Mock file download function (for demo purposes)
+    function mockDownload(filename) {
+      alert(`In a production environment, this would download ${filename}`);
+      return false;
+    }
+  </script>
+</body>
+</html>
